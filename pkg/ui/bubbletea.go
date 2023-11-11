@@ -177,19 +177,35 @@ func viewRules() string {
 }
 
 func (ui *UI) viewBoard() string {
+	var style lipgloss.Style
 	s := ""
-	for i := 0; i < game.NPegs; i++ {
-		if ui.currentPeg == rune(i) {
-			s += currentPegStyle.Render(string(rune(i) + 'A'))
-		} else {
-			s += normalPegStyle.Render(string(rune(i) + 'A'))
-		}
-		s += ": "
-		for j := 0; j < len(ui.game.Pegs[i]); j++ {
-			s += string(ui.game.Pegs[i][j] + '0') + " "
+	// vertically stacked
+	for i := game.NDsks - 1; i >= 0; i-- {
+		for j := 0; j < game.NPegs; j++ {
+			if ui.currentPeg == rune(j) {
+				style = currentPegStyle
+			} else {
+				style = normalPegStyle
+			}
+			if len(ui.game.Pegs[j]) > i {
+				s += style.Render(string(ui.game.Pegs[j][i] + '0') + " ")
+			} else {
+				s += style.Render("  ")
+			}
 		}
 		s += "\n"
 	}
+	s += "\n"
+	// peg labels
+	for i := 0; i < game.NPegs; i++ {
+		if ui.currentPeg == rune(i) {
+			style = currentPegStyle.Copy().Bold(true)
+		} else {
+			style = normalPegStyle.Copy().Bold(true)
+		}
+		s += style.Render(string('A' + rune(i)) + " ")
+	}
+	s += "\n"
 	return s
 }
 
@@ -201,15 +217,17 @@ func (ui *UI) View() string {
 		return "Goodbye!\n"
 	}
 	s := ""
-	s += viewRules() + "\n"
+	// s += viewRules() + "\n"
 	s += ui.viewBoard() + "\n"
 	if ui.err != nil {
 		s += errorStyle.Render("Error: ")
 		s += ui.err.Error() + "\n"
+	} else {
+		s += "\n\n"
 	}
 
 	helpView := ui.help.View(keys)
-	height := strings.Count(s, "\n") - strings.Count(helpView, "\n")
+	height := game.NDsks + 5 - strings.Count(helpView, "\n")
 	
 	return s + strings.Repeat("\n", height) + helpView
 }
