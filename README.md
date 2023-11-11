@@ -1,40 +1,44 @@
-# Tower of Hanoi
+# TOI
 
-This is a simple implementation of the Tower of Hanoi game using Go and the Bubbletea library for the terminal-based user interface.
+This game is a terminal implementation of the classic [Tower of Hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi) game.
 
-## Installation
+## Set Up
 
-To install the game, you need to have Go installed on your machine. If you don't have Go installed, you can download it from the official website.
+You need to have Go installed on your system. If you don't have Go installed, you can download it from the [official website](https://golang.org/dl/).
 
-Once you have Go installed, you can install the game by running the following command:
+
+Clone the project with the following command:
 
 ```bash
-go get github.com/yourusername/tower-of-hanoi
+git clone git@github.com:sansmoraxz/toi-go.git
 ```
 
-Replace `yourusername` with your actual GitHub username.
+# Running the Game
 
-## How to Play
-
-To start the game, navigate to the directory where you installed the game and run the following command:
+To start the game, navigate to the directory where you cloned the project and run the following command:
 
 ```bash
-go run cmd/tower-of-hanoi/main.go
+go run cmd/toi/main.go
 ```
 
 The game will start and you will see the initial state of the game in your terminal.
 
 The goal of the game is to move all the disks from the leftmost peg to the rightmost peg. You can only move one disk at a time and you cannot place a larger disk on top of a smaller disk.
 
-To move a disk, you can use the arrow keys to select the disk you want to move and then press `a` or `d` to move the disk to the left or right peg respectively.
+# Navigation
+
+You can move the cursor around the pegs using the arrow keys. The current position of the cursor is highlighted in blue.
+
+To move the disks use the `A` or `D` keys. `A` moves the disk to the left and `D` moves the disk to the right.
+
 
 ## Resetting the Game
 
-If you want to start a new game, you can reset the game by entering `r`.
+If you want to restart a new game, you can reset the game by pressing `r`.
 
 ## Quitting the Game
 
-To quit the game, you can enter `q`.
+To quit the game, you can press `q`.
 
 ## Enjoy the Game!
 
