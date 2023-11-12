@@ -46,11 +46,11 @@ func NewHanoi() *Hanoi {
 
 func (h *Hanoi) MoveDisk(from, to rune) error {
 	if len(h.Pegs[from]) == 0 {
-		return fmt.Errorf("no disk to move on peg %d", from)
+		return fmt.Errorf("no disk to move on peg %s", string(from + 'A'))
 	}
 	disk := h.Pegs[from][len(h.Pegs[from])-1]
 	if len(h.Pegs[to]) > 0 && h.Pegs[to][len(h.Pegs[to])-1] < disk {
-		return fmt.Errorf("disk %d is larger than the top disk on peg %d", disk, to)
+		return fmt.Errorf("disk %d is larger than the top disk on peg %s", disk, string(to + 'A'))
 	}
 	h.Pegs[from] = h.Pegs[from][:len(h.Pegs[from])-1]
 	h.Pegs[to] = append(h.Pegs[to], disk)
