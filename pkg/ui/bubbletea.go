@@ -194,12 +194,18 @@ func (ui *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func ViewRules() string {
-	return rulesStyle.Render("Rules:\n" +
+	s := ""
+	rulesStyle.Bold(true).Underline(true)
+	s += rulesStyle.Render("Rules:")
+	rulesStyle.Bold(false).Underline(false)
+	s += rulesStyle.Render(
+		"\n\n" +
 		"1. Only one disk can be moved at a time.\n" +
 		"2. Each move consists of taking the upper disk from one of the stacks and placing it on top of another stack.\n" +
 		"3. No disk may be placed on top of a smaller disk.\n" +
-		"4. Fill the last peg with all the disks to win.\n" + 
+		"4. Fill the last peg with all the disks to win.\n" +
 		"5. You can only move adjacent disks.\n")
+	return s
 }
 
 func (ui *UI) viewBoard() string {
