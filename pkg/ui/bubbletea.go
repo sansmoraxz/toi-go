@@ -63,7 +63,7 @@ func (k keyMap) Map() map[string]key.Binding {
 
 var keys = keyMap{
 	Quit:  key.NewBinding(
-		key.WithKeys("q", "esc"),
+		key.WithKeys("q", "esc", "ctrl+c"),
 		key.WithHelp("q", "Quit"),
 	),
 	Help: key.NewBinding(
