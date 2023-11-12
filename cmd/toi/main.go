@@ -11,6 +11,9 @@ func main() {
 	// Initialize the game and UI
 	ui := ui.NewUI()
 
+	// clear the screen
+	fmt.Print("\033[H\033[2J")
+
 	// Start the UI
 	err := ui.Start()
 	if err != nil {
