@@ -13,11 +13,17 @@ BINARY_NAME=toi
 all: clean build
 build:
 		$(GOBUILD) -o dist/ ./cmd/toi
+
+build.linux:
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o dist/toi-linux ./cmd/toi
+build.win:
+		CGO_ENABLED=0 GOOS=windows GOARCH=amd64 $(GOBUILD) -o dist/toi-windows.exe ./cmd/toi
+
 clean:
 		$(GOCLEAN)
-		rm -f $(BINARY_NAME)
+		rm -f dist/$(BINARY_NAME)
 run:
 		$(GOBUILD) -o dist/ ./cmd/toi
-		./$(BINARY_NAME)
+		./dist/$(BINARY_NAME)
 deps:
 		$(GOGET) ./...
