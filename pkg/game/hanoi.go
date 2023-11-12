@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 const NPegs = 3 // number of pegs
@@ -20,8 +21,10 @@ func NewHanoi() *Hanoi {
 		// fill pegs with disks only if it is the first peg
 		if i == 0 {
 			pegs[i] = make([]rune, NDsks)
+			// randomize the order of disks
+			sl := rand.Perm(NDsks)
 			for j := 0; j < NDsks; j++ {
-				pegs[i][j] = rune(j + 1)
+				pegs[i][j] = rune(sl[j]) + 1
 			}
 		} else {
 			pegs[i] = make([]rune, 0)
