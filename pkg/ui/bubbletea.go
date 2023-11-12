@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 type UI struct {
@@ -19,8 +20,12 @@ type UI struct {
 	err error
 	done bool
 	quitting bool
+	rules bool
 
 	help help.Model
+
+	screenWidth int
+	screenHeight int
 }
 
 var (
@@ -35,6 +40,7 @@ var (
 type keyMap struct {
 	Quit  key.Binding
 	Help  key.Binding
+	Rules key.Binding
 	Left  key.Binding
 	Right key.Binding
 	R  key.Binding
@@ -47,6 +53,7 @@ func (k keyMap) Map() map[string]key.Binding {
 		"q": k.Quit,
 		"?": k.Help,
 		"r": k.R,
+		"f": k.Rules,
 		"a": k.A,
 		"d": k.D,
 		"←": k.Left,
@@ -61,7 +68,11 @@ var keys = keyMap{
 	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
-		key.WithHelp("?", "Toggle help"),
+		key.WithHelp("?", "Expand help"),
+	),
+	Rules: key.NewBinding(
+		key.WithKeys("f"),
+		key.WithHelp("f", "View rules"),
 	),
 	Left:  key.NewBinding(
 		key.WithKeys("left"),
@@ -72,15 +83,15 @@ var keys = keyMap{
 		key.WithHelp("→", "Move cursor right"),
 	),
 	R: key.NewBinding(
-		key.WithKeys("r"),
+		key.WithKeys("r", "R"),
 		key.WithHelp("r", "Reload"),
 	),
 	A: key.NewBinding(
-		key.WithKeys("a"),
+		key.WithKeys("a", "A"),
 		key.WithHelp("a", "Move disk left"),
 	),
 	D: key.NewBinding(
-		key.WithKeys("d"),
+		key.WithKeys("d", "D"),
 		key.WithHelp("d", "Move disk right"),
 	),
 }
@@ -88,14 +99,14 @@ var keys = keyMap{
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
 // of the key.Map interface.
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.R, k.Quit, k.Help}
+	return []key.Binding{k.R, k.Quit, k.Help, k.Rules}
 }
 
 // FullHelp returns keybindings for the expanded help view. It's part of the
 // key.Map interface.
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.R, k.Quit, k.Help},			// second column
+		{k.R, k.Quit, k.Help, k.Rules}, // first column
 		{k.Left, k.Right},				// first column
 		{k.A, k.D}, 					// third column
 	}
@@ -111,13 +122,20 @@ func NewUI() *UI {
 		err: nil,
 		done: false,
 		quitting: false,
+		rules: false,
 
 		help: help.New(),
+
+		screenWidth: 80,
+		screenHeight: 80,
 	}
 }
 
 func (ui *UI) Start() error {
-	p := tea.NewProgram(ui)
+	p := tea.NewProgram(
+		ui,
+		tea.WithAltScreen(),
+	)
 	_, err := p.Run()
 	return err
 }
@@ -128,25 +146,33 @@ func (ui *UI) Init() tea.Cmd {
 }
 
 func (ui *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var flags tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		ui.screenWidth = msg.Width
+		ui.screenHeight = msg.Height
 		// If we set a width on the help menu it can gracefully truncate its view as needed.
 		ui.help.Width = msg.Width
+		flags = tea.ClearScreen
 	case tea.KeyMsg:
+		flags = tea.ClearScreen
 		switch {
 		case key.Matches(msg, keys.Quit):
 			ui.quitting = true
 			return ui, tea.Quit
 		case key.Matches(msg, keys.Help):
 			ui.help.ShowAll = !ui.help.ShowAll
+		case key.Matches(msg, keys.R):
+			ui.game.Reset()
+			ui.err = errors.New("game reset")
+		case key.Matches(msg, keys.Rules):
+			ui.rules = !ui.rules
 		// arrow keys to move the cursor
 		case key.Matches(msg, keys.Left):
 			ui.currentPeg = game.PrevPeg(ui.currentPeg)
 		case key.Matches(msg, keys.Right):
 			ui.currentPeg = game.NextPeg(ui.currentPeg)
-		case key.Matches(msg, keys.R):
-			ui.game.Reset()
-			ui.err = errors.New("game reset")
+
 		// a or d to move disk
 		case key.Matches(msg, keys.A):
 			newPeg := game.PrevPeg(ui.currentPeg)
@@ -164,10 +190,10 @@ func (ui *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	ui.done = ui.game.IsFinished()
 
-	return ui, nil
+	return ui, flags
 }
 
-func viewRules() string {
+func ViewRules() string {
 	return rulesStyle.Render("Rules:\n" +
 		"1. Only one disk can be moved at a time.\n" +
 		"2. Each move consists of taking the upper disk from one of the stacks and placing it on top of another stack.\n" +
@@ -210,24 +236,30 @@ func (ui *UI) viewBoard() string {
 }
 
 func (ui *UI) View() string {
+	s := "\n"
 	if ui.done {
-		return "You win!\n"
-	}
-	if ui.quitting {
+		s += "You win!\n"
+	} else if ui.quitting {
 		return "Goodbye!\n"
-	}
-	s := ""
-	// s += viewRules() + "\n"
-	s += ui.viewBoard() + "\n"
-	if ui.err != nil {
-		s += errorStyle.Render("Error: ")
-		s += ui.err.Error() + "\n"
+	} else if ui.rules {
+		s += ViewRules() + "\n"
 	} else {
-		s += "\n\n"
+		s += ui.viewBoard() + "\n"
+		if ui.err != nil {
+			s += errorStyle.Render("Error: ")
+			s += ui.err.Error() + "\n"
+		} else {
+			s += "\n\n"
+		}
 	}
 
+	// wrap the rendered string to the width of the terminal
+	s = wordwrap.String(s, ui.screenWidth - 1)
+
 	helpView := ui.help.View(keys)
-	height := game.NDsks + 5 - strings.Count(helpView, "\n")
+
+	// add padding to the bottom of the screen for the help view
+	height := ui.screenHeight - strings.Count(s, "\n") - strings.Count(helpView, "\n")
 	
 	return s + strings.Repeat("\n", height) + helpView
 }
