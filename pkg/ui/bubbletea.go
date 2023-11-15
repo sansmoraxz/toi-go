@@ -231,11 +231,12 @@ func (ui *UI) viewBoard() string {
 	// peg labels
 	for i := 0; i < game.NPegs; i++ {
 		if ui.currentPeg == rune(i) {
-			style = currentPegStyle.Copy().Bold(true)
+			style = currentPegStyle.Bold(true)
 		} else {
-			style = normalPegStyle.Copy().Bold(true)
+			style = normalPegStyle.Bold(true)
 		}
 		s += style.Render(string('A' + rune(i)) + " ")
+		style.Bold(false)
 	}
 	s += "\n"
 	return s
