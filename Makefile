@@ -3,6 +3,7 @@ GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOGET=$(GOCMD) get
+GOTEST=$(GOCMD) test
 
 # Binary names
 BINARY_NAME=toi
@@ -27,3 +28,5 @@ run:
 		./dist/$(BINARY_NAME)
 deps:
 		$(GOGET) ./...
+test:
+		$(GOTEST) -v ./...
